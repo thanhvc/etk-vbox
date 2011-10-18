@@ -158,6 +158,60 @@ public final class ModuleAssembler {
   }
   
   /**
+   * Convenience method &nbsp;Equivalent to {@code alias(type, ModuleService.DEFAULT_NAME, type)}
+   * @param <T>
+   * @param type
+   * @param alias
+   * @return
+   */
+  public <T> ModuleAssembler alias(Class<T> type, String alias) {
+    return alias(type, ModulerService.DEFAULT_NAME);
+  }
+  
+  /**
+   * Maps an existing {@link InternalInspector} to new name.
+   * @param <T>
+   * @param type of dependency
+   * @param name of dependency
+   * @param alias of to the dependency.
+   * @return this assembler
+   */
+  public <T> ModuleAssembler alias(Class<T> type, String name, String alias) {
+    return alias(MyKey.newInstance(type, name), MyKey.newInstance(type, alias));
+  }
+  
+  /**
+   * Maps an existing dependency. All methods in this class ultimately funnel through here.
+   * @param <T>
+   * @param key
+   * @param aliasKey
+   * @return
+   */
+  private <T> ModuleAssembler alias(final MyKey<T> key, final MyKey<T> aliasKey) {
+    ensureNotCreated();
+    checkKey(aliasKey);
+    
+    final InternalInspector<? extends T> scopedInspector = (InternalInspector<? extends T>) factories.get(key);
+    if (scopedInspector == null) {
+      throw new DependencyException("Dependency mapping for " + key + "doesn't exists.");
+    }
+    
+    factories.put(aliasKey, scopedInspector);
+    return this;
+    
+  }
+  
+  /**
+   * Ensures a key isn't already mapped.
+   * @param key
+   */
+  private void checkKey(MyKey<?> key) {
+    if (factories.containsKey(key)) {
+      throw new DependencyException("Dependency mapping for " + key + " already exits.");
+    }
+  }
+  
+  /**
    * Currently we only support creating one {@link ModulerService} instance per builder.
    * If we want to support creating more than one container per builder,
    * we should move to a "factory factory" model where we create a factory

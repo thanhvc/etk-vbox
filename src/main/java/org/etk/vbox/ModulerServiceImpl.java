@@ -31,16 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.etk.vbox.ConstructionContext;
-import org.etk.vbox.DependencyException;
-import org.etk.vbox.ExternalContext;
-import org.etk.vbox.InspectorContext;
-import org.etk.vbox.InternalInspector;
-import org.etk.vbox.ModulerService;
-import org.etk.vbox.ModulerServiceImpl;
-import org.etk.vbox.MyInject;
-import org.etk.vbox.MyKey;
-import org.etk.vbox.MyScope;
 import org.etk.vbox.utils.DataCache;
 
 /**
@@ -257,6 +247,14 @@ public final class ModulerServiceImpl implements ModulerService {
     MyKey<T> key = MyKey.newInstance(type, name);
     context.setExternalContext(ExternalContext.newInstance(null, key, this));
     try {
+      //2011-October-18 handles NPE when InternalInspector is null, 
+      //check null here when has not existing the InternalFactory for key.
+      InternalInspector<?> inspector = getFactory(key);
+      if(inspector != null) {
+       inspector.create(context); 
+      } else {
+        return null;
+      }
       return getFactory(key).create(context);
     } finally {
       context.setExternalContext(previous);
