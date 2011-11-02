@@ -48,32 +48,34 @@ public class DataMap<K, V> implements Map<K, V>, Serializable {
   
   @Override
   public int size() {
-    // TODO Auto-generated method stub
-    return 0;
+    return this.delegate.size();
   }
 
   @Override
   public boolean isEmpty() {
-    // TODO Auto-generated method stub
-    return false;
+    return delegate.isEmpty();
   }
 
   @Override
   public boolean containsKey(Object key) {
-    // TODO Auto-generated method stub
-    return false;
+    return delegate.containsKey(key);
   }
 
   @Override
   public boolean containsValue(Object value) {
-    // TODO Auto-generated method stub
-    return false;
+    return delegate.containsValue(value);
   }
 
   protected interface Strategy {
     public Object execute(DataMap map, Object key, Object value);
   }
   
+  /**
+   * Strategy pattern to define some strategies to manipulation with the DataMap.
+   * 
+   * @author thanh_vucong
+   *
+   */
   private enum PutStrategy implements Strategy {
 
     PUT {
@@ -98,7 +100,9 @@ public class DataMap<K, V> implements Map<K, V>, Serializable {
     }
   }
   
-  
+  /**
+   * Defines the default the Strategy for manipulating with the DataMap. 
+   */
   private static PutStrategy defaultPutStrategy;
 
   protected PutStrategy getPutStrategy() {
@@ -134,13 +138,12 @@ public class DataMap<K, V> implements Map<K, V>, Serializable {
 
   @Override
   public void putAll(Map<? extends K, ? extends V> m) {
-    // TODO Auto-generated method stub
-    
+    this.delegate.putAll(m);    
   }
 
   @Override
   public void clear() {
-    // TODO Auto-generated method stub
+    this.delegate.clear();
     
   }
 
