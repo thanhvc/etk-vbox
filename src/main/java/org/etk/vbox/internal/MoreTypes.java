@@ -16,6 +16,9 @@
  */
 package org.etk.vbox.internal;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
@@ -27,6 +30,11 @@ import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
+
+import org.etk.vbox.TypeLiteral;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Static methods for working with types that we aren't publishing in the
@@ -53,40 +61,7 @@ public class MoreTypes {
           .put(TypeLiteral.get(void.class), TypeLiteral.get(Void.class))
           .build();
 
-  /**
-   * Returns an type that's appropriate for use in a key.
-   *
-   * <p>If the raw type of {@code typeLiteral} is a {@code javax.inject.Provider}, this returns a
-   * {@code com.google.inject.Provider} with the same type parameters.
-   *
-   * <p>If the type is a primitive, the corresponding wrapper type will be returned.
-   *
-   * @throws ConfigurationException if {@code type} contains a type variable
-   */
-  public static <T> TypeLiteral<T> canonicalizeForKey(TypeLiteral<T> typeLiteral) {
-    Type type = typeLiteral.getType();
-    if (!isFullySpecified(type)) {
-      Errors errors = new Errors().keyNotFullySpecified(typeLiteral);
-      throw new ConfigurationException(errors.getMessages());
-    }
-
-    if (typeLiteral.getRawType() == javax.inject.Provider.class) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
-
-      // the following casts are generally unsafe, but com.google.inject.Provider extends
-      // javax.inject.Provider and is covariant
-      @SuppressWarnings("unchecked")
-      TypeLiteral<T> guiceProviderType = (TypeLiteral<T>) TypeLiteral.get(
-          Types.providerOf(parameterizedType.getActualTypeArguments()[0]));
-      return guiceProviderType;
-    }
-
-    @SuppressWarnings("unchecked")
-    TypeLiteral<T> wrappedPrimitives = (TypeLiteral<T>) PRIMITIVE_TO_WRAPPER.get(typeLiteral);
-    return wrappedPrimitives != null
-        ? wrappedPrimitives
-        : typeLiteral;
-  }
+  
 
   /**
    * Returns true if {@code type} is free from type variables.

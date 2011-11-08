@@ -17,12 +17,14 @@
 package org.etk.vbox;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.aopalliance.intercept.MethodInterceptor;
 import org.etk.vbox.ModuleAssembler;
 import org.etk.vbox.InspectorContext;
 import org.etk.vbox.InternalInspector;
@@ -31,6 +33,8 @@ import org.etk.vbox.ModulerServiceImpl;
 import org.etk.vbox.MyKey;
 import org.etk.vbox.MyScope;
 import org.etk.vbox.MyScoped;
+import org.etk.vbox.intercept.ProxyFactoryBuilder;
+import org.etk.vbox.matcher.Matcher;
 
 /**
  * Created by The eXo Platform SAS
@@ -44,8 +48,11 @@ public final class ModuleAssembler {
   final List<InternalInspector<?>> singletonFactories = new ArrayList<InternalInspector<?>>();
   final List<Class<?>> staticInjections = new ArrayList<Class<?>>();
   boolean created;
+  final ProxyFactoryBuilder proxyFactoryBuilder;
   
-  
+  public ModuleAssembler() {
+    this.proxyFactoryBuilder = new ProxyFactoryBuilder();
+  }
   /**
    * Convenience method.&nbsp;Equivalent to {@code factory(type,
    * Moduler.DEFAULT_NAME, implementation)}.
@@ -199,6 +206,23 @@ public final class ModuleAssembler {
     factories.put(aliasKey, scopedInspector);
     return this;
     
+  }
+  
+  /**
+   * Applies the given method interceptor to the methods matched by the class
+   * and method matchers.
+   *
+   * @param classMatcher matches classes the interceptor should apply to. For
+   *     example: {@code only(Runnable.class)}.
+   * @param methodMatcher matches methods the interceptor should apply to. For
+   *     example: {@code annotatedWith(Transactional.class)}.
+   * @param interceptors to apply
+   */
+  public void intercept(Matcher<? super Class<?>> classMatcher,
+                        Matcher<? super Method> methodMatcher,
+                        MethodInterceptor... interceptors) {
+    ensureNotCreated();
+    proxyFactoryBuilder.intercept(classMatcher, methodMatcher, interceptors);
   }
   
   /**

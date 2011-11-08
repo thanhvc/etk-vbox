@@ -7,59 +7,78 @@
 	<version>0.1</version>
 	<name>Social Model Rest Service Virtual Box</name>
 	<description>Social Model Rest Service  Virtual Box</description>
+
+	<properties>
+		<cglib.version>2.2.2</cglib.version>
+	</properties>
+
 	<dependencies>
-
-   
-    
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>provided</scope>
-      <version>3.8.1</version>
-    </dependency>
-
-   
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>provided</scope>
+			<version>3.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>r09</version>
+		</dependency>
+		<dependency>
+			<groupId>aopalliance</groupId>
+			<artifactId>aopalliance</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<version>${cglib.version}</version>
+		</dependency>
 	</dependencies>
-
 	<build>
-	<plugins>
+		<plugins>
 
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-jar-plugin</artifactId>
-			<executions>
-				<execution>
-					<phase>package</phase>
-					<goals>
-						<goal>test-jar</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-source-plugin</artifactId>
-			<executions>
-				<execution>
-					<id>attach-sources</id>
-					<goals>
-						<goal>jar</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-javadoc-plugin</artifactId>
-			<executions>
-				<execution>
-					<id>attach-javadocs</id>
-					<goals>
-						<goal>jar</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin>
-	</plugins>
-</build>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
