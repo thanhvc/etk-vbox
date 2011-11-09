@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -625,5 +626,29 @@ public final class ModulerServiceImpl implements ModulerService {
     MissingDependencyException(String message) {
       super(message);
     }
+  }
+  /**--------------------------------------------------------------------------------------------------------------*/
+  static class PrimitiveConverters extends HashMap<Class<?>, Converter<?>> {
+    public PrimitiveConverters() {
+      
+    }
+    
+    <T> void putParser(Class<T> wrapper, final Class<T> primitive) {
+     
+    }
+  }
+  
+  /**--------------------------------------------------------------------------------------------------------------*/
+  /**
+   * Converts a {@code String} to another type.
+   */
+  interface Converter<T> {
+    T convert(Member member, MyKey<T> key, String value);
+  }
+
+  @Override
+  public boolean hasBindingFor(MyKey<?> key) {
+    // TODO Auto-generated method stub
+    return false;
   }
 }
