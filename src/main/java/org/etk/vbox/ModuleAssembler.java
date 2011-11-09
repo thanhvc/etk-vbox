@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.etk.vbox.ModuleAssembler;
 import org.etk.vbox.InspectorContext;
@@ -33,6 +34,20 @@ import org.etk.vbox.MyScope;
 import org.etk.vbox.MyScoped;
 
 /**
+ * Builds a dependencies injection {@link ModuleService}. The combination of dependency type 
+ * and name uniquely identified a dependency mapping; you can use the same name for two different types
+ * Not safe for concurrent use.
+ * 
+ * <p> Adds the follwing factories by default:
+ * 
+ * <ul>
+ *   <li> Injects the current {@link ModuleService}
+ *   <li> Injects the {@link Logger} for the injected member's declaring class.
+ * </ul>
+ *  
+ * <p> Converts constants as needed from {@code String} to any primitive type in 
+ * addition to {@code enum} and {@code Class}
+ *  
  * Created by The eXo Platform SAS
  * Author : eXoPlatform
  *          exo@exoplatform.com
@@ -158,6 +173,35 @@ public final class ModuleAssembler {
   }
   
   /**
+   * Maps constant names to values.
+   * 
+   * @param properties
+   * @return
+   */
+  public ModuleAssembler properties(Map<String, String> properties) {
+    for (Map.Entry<String, String> entry : properties.entrySet()) {
+      constant(entry.getKey(), entry.getValue());
+    }
+    
+    return this;
+  }
+  
+  /**
+   * Maps constant names to values.
+   * 
+   * @param properties
+   * @return
+   */
+  public ModuleAssembler properties(Properties properties) {
+    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+      constant((String) entry.getKey(), (String) entry.getValue());
+    }
+    
+    return this;
+  }
+  
+  
+  /**
    * Convenience method &nbsp;Equivalent to {@code alias(type, ModuleService.DEFAULT_NAME, type)}
    * @param <T>
    * @param type
@@ -199,6 +243,75 @@ public final class ModuleAssembler {
     factories.put(aliasKey, scopedInspector);
     return this;
     
+  }
+  
+  /**
+   * Maps a constant value to given name.
+   * 
+   * @param name
+   * @param value
+   * @return
+   */
+  public ModuleAssembler constant(String name, String value) {
+    return constant(String.class, name, value);
+  }
+  
+  /**
+   * Maps a constant value to given name.
+   * 
+   * @param name
+   * @param value
+   * @return
+   */
+  public ModuleAssembler constant(String name, int value) {
+    return constant(int.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, long value) {
+    return constant(long.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, boolean value) {
+    return constant(boolean.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, double value) {
+    return constant(double.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, float value) {
+    return constant(float.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, short value) {
+    return constant(short.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, char value) {
+    return constant(char.class, name, value);
+  }
+  
+  public ModuleAssembler constant(String name, Class value) {
+    return constant(Class.class, name, value);
+  }
+  
+  public <E extends Enum<E>> ModuleAssembler constant(String name, E value) {
+    return constant(value.getDeclaringClass(), name, value);
+  }
+  
+  /**
+   * Maps a constant value to the given type and name.
+   * 
+   * @param <T>
+   * @param type
+   * @param name
+   * @param value
+   * @return
+   */
+  private <T> ModuleAssembler constant(final Class<T> type, String name, final T value) {
+    InternalInspector<T> factory = new ConstantInspector<T>(value);
+    
+    return factory(MyKey.newInstance(type, name), factory, MyScope.DEFAULT);
   }
   
   /**

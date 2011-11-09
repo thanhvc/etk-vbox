@@ -19,8 +19,46 @@ package org.etk.vbox;
 import org.etk.vbox.MyScope;
 
 /**
+ * Injects dependencies into constructors, methods, and fields annotated with
+ * {@code MyInject}. Immutable.
+ * 
+ * <p> When injecting a method or constructor, you can additionally annotate its parameters with
+ * {@link MyInject} and specify a dependency name. When a parameter has no annotation, 
+ * the ModuleService uses the name from the method or constructor's {@link MyInject} annotation 
+ * respectively.
+ * 
+ * <p> For example:
+ * class Foo {
+ *   //Inject the int constant named "i"
+ *   &#64;MyInject("i") int i;
+ *   
+ *   //Inject the default implementation of Bar and the String constant named "s"
+ *   &#64;Inject Foo(Bar bar, @Inject("s") String s) {
+ *      ...
+ *   }
+ *   
+ *   // Inject the default implementation of Baz and the Bob implementation
+ *   // named "foo".
+ *   &#64;Inject void initialize(Baz baz, @Inject("foo") Bob bob) {
+ *      ...
+ *   }
+ *   
+ *   //Inject the default implementation of Tee 
+ *   &#64;Inject void setTee(Tee tee) {
+ *      ...
+ *   }
+ *   
+ * }
+ * 
+ * </pre>
+ * 
+ * <p>To create and inject an instance of {@code Foo}:
+ * <pre>
+ *   ModuleService module = ...;
+ *   Foo foo = module.inject(Foo.class);
+ *</pre>   
  * Created by The eXo Platform SAS
- * Author : eXoPlatform
+ * Author : thanh_vucong
  *          exo@exoplatform.com
  * Oct 12, 2011  
  */
@@ -63,5 +101,12 @@ public interface ModulerService {
    */
   void removeScopeStrategy();
   
+  /**
+   * Checks whether the {@code ModuleService} has a binding for given key.
+   * 
+   * @param key binding key
+   * @return {@code true} if a binding existing for the given key.
+   */
+  boolean hasBindingFor(MyKey<?> key);
   
 }
