@@ -19,12 +19,6 @@ package org.etk.vbox;
 import org.etk.vbox.MyKey;
 
 /**
- * Created by The eXo Platform SAS
- * Author : eXoPlatform
- *          exo@exoplatform.com
- * Oct 13, 2011  
- */
-/**
  * Dependency mapping key. Uniquely identified by the required type and name.
  *
  */

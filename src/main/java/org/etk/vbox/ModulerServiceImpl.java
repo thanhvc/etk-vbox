@@ -16,6 +16,10 @@
  */
 package org.etk.vbox;
 
+import net.sf.cglib.reflect.FastMethod;
+import net.sf.cglib.reflect.FastClass;
+import net.sf.cglib.reflect.FastConstructor;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
@@ -115,16 +119,14 @@ public final class ModulerServiceImpl implements ModulerService {
   }
   
   
-  private static Object[] getParameters(Member member,
-                                        InspectorContext context,
-                                        ParameterInjector[] parameterInjectors) {
+  private static Object[] getParameters(InspectorContext context, ParameterInjector[] parameterInjectors) {
     if (parameterInjectors == null) {
       return null;
     }
 
     Object[] parameters = new Object[parameterInjectors.length];
     for (int i = 0; i < parameters.length; i++) {
-      parameters[i] = parameterInjectors[i].inject(member, context);
+      parameters[i] = parameterInjectors[i].inject(context);
     }
     return parameters;
   }
@@ -410,11 +412,11 @@ public final class ModulerServiceImpl implements ModulerService {
    */
   static class MethodInjector implements Injector {
 
-    final Method method;
+    final FastMethod fastMethod;
     final ParameterInjector<?>[] parameterInjectors;
 
     public MethodInjector(ModulerServiceImpl module, Method method, String name) throws MissingDependencyException {
-      this.method = method;
+      this.fastMethod = FastClass.create(method.getDeclaringClass()).getMethod(method);
       method.setAccessible(true);
 
       Class<?>[] parameterTypes = method.getParameterTypes();
@@ -429,7 +431,7 @@ public final class ModulerServiceImpl implements ModulerService {
      */
     public void inject(InspectorContext context, Object o) {
       try {
-        method.invoke(o, getParameters(method, context, parameterInjectors));
+        fastMethod.invoke(o, getParameters(context, parameterInjectors));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -446,12 +448,12 @@ public final class ModulerServiceImpl implements ModulerService {
   static class ConstructorInjector<T> {
     final Class<T> implementation;
     final List<Injector> injectors;
-    final Constructor<T> constructor;
+    final FastConstructor fastConstructor;
     final ParameterInjector<?>[] parameterInjectors;
     
     ConstructorInjector(ModulerServiceImpl module, Class<T> implementation) {
       this.implementation = implementation;
-      constructor = findConstructorIn(implementation);
+      Constructor<T> constructor = findConstructorIn(implementation);
       constructor.setAccessible(true);
       
       try {
@@ -462,6 +464,7 @@ public final class ModulerServiceImpl implements ModulerService {
       }
       
       injectors = module.dependencyInjectors.get(implementation);
+      fastConstructor = FastClass.create(constructor.getDeclaringClass()).getConstructor(constructor);
     }
     
     /**
@@ -525,8 +528,8 @@ public final class ModulerServiceImpl implements ModulerService {
         // First time through...
         constructionContext.startConstruction();
         try {
-          Object[] parameters = getParameters(constructor, context, parameterInjectors);
-          t = constructor.newInstance(parameters);
+          Object[] parameters = getParameters(context, parameterInjectors);
+          t = newInstance(parameters);
           constructionContext.setProxyDelegates(t);
         } finally {
           constructionContext.finishConstruction();
@@ -542,15 +545,16 @@ public final class ModulerServiceImpl implements ModulerService {
         }
 
         return t;
-      } catch (InstantiationException e) {
-        throw new RuntimeException(e);
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
       } catch (InvocationTargetException e) {
         throw new RuntimeException(e);
       } finally {
         constructionContext.removeCurrentReference();
       }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private T newInstance(Object[] parameters) throws InvocationTargetException {
+      return (T) fastConstructor.newInstance(parameters);
     }
   }
   /**--------------------------------------------------------------------------------------------------------------*/
@@ -609,7 +613,7 @@ public final class ModulerServiceImpl implements ModulerService {
       this.factory = factory;
     }
     
-    T inject(Member member, InspectorContext context) {
+    T inject(InspectorContext context) {
       ExternalContext<?> previous = context.getExternalContext();
       context.setExternalContext(externalContext);
       try {
