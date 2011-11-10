@@ -19,6 +19,7 @@ package org.etk.vbox;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
+import static org.etk.vbox.MyScope.SINGLETON;
 
 import java.text.DecimalFormat;
 import java.util.concurrent.Callable;
@@ -98,12 +99,15 @@ public class PerformanceComparison {
       ModuleAssembler builder = new ModuleAssembler();
       builder.factory(Tee.class, TeeImpl.class);
       builder.factory(Bar.class, BarImpl.class);
-      service = builder.create(false);
+      builder.factory(Foo.class, Foo.class);
+      builder.constant("i", 5);
+      builder.constant("s", "test");
       
+      service = builder.create(false);
     };
 
     public Foo call() throws Exception {
-      return service.inject(Foo.class);
+      return service.getInstance(Foo.class);
     }
   };
 
@@ -125,6 +129,7 @@ public class PerformanceComparison {
     Foo foo = t.call();
     assertEquals(5, foo.i);
     assertEquals("test", foo.s);
+    //because on this is singleton, can not create new instance.
     assertSame(foo.bar.getTee(), foo.copy.getTee());
     assertEquals(5, foo.bar.getI());
     assertEquals("test", foo.bar.getTee().getS());
@@ -139,8 +144,7 @@ public class PerformanceComparison {
       callable.call();
     }
     time = System.currentTimeMillis() - time;
-    System.err.println(label
-        + format.format(count * 1000 / time) + " creations/s");
+    System.err.println(label + format.format(count * 1000 / time) + " creations/s");
   }
 
   public static class Foo {
@@ -202,6 +206,7 @@ public class PerformanceComparison {
     String getS();
   }
 
+  @MyScoped(SINGLETON)
   public static class TeeImpl implements Tee {
 
     final String s;

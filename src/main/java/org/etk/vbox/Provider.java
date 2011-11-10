@@ -23,7 +23,7 @@ package org.etk.vbox;
  * <ul>
  * <li>When the default means for obtaining instances (an injectable or parameterless constructor)
  * is insufficient for a particular binding, the module can specify a custom {@code Provider}
- * instead, to control exactly how Vbox creates or obtains instances for the binding.
+ * instead, to control exactly how vbox creates or obtains instances for the binding.
  *
  * <li>An implementation class may always choose to have a {@code Provider<T>} instance injected,
  * rather than having a {@code T} injected directly.  This may give you access to multiple

@@ -78,6 +78,7 @@ public class ProxySimpleTest extends TestCase {
     Class<?> simpleClass = factory.get(Simple.class);
 
     Simple instance = (Simple) simpleClass.newInstance();
+    
     instance.invoke();
     
     instance.show("my message");

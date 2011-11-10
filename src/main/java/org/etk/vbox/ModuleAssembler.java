@@ -110,7 +110,7 @@ public final class ModuleAssembler {
       @Override
       public T create(InspectorContext context) {
         if (constructor == null) {
-          this.constructor = context.getApplicationImpl().getConstructor(implementation);
+          this.constructor = context.getModuleServiceImpl().getConstructor(implementation);
         }
         return (T) constructor.construct(context, type);
       }
