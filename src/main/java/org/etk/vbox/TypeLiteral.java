@@ -16,11 +16,29 @@
  */
 package org.etk.vbox;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.etk.vbox.internal.MoreTypes.canonicalize;
+
+
+
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.List;
+
+
+import org.etk.vbox.internal.MoreTypes;
+import org.etk.vbox.utils.Types;
+
+import com.google.common.collect.ImmutableList;
+
 
 /**
  * Created by The eXo Platform SAS
@@ -42,7 +60,7 @@ public class TypeLiteral<T> {
    * at runtime despite erasure.
    */
   protected TypeLiteral() {
-    this.type = getSuperClassTypeParameter(getClass());
+    this.type = getSuperclassTypeParameter(getClass());
     this.rawType = (Class<? super T>) MoreTypes.getRawType(type);
     this.hashCode = type.hashCode();
   }
@@ -52,7 +70,7 @@ public class TypeLiteral<T> {
    * @param type
    */
   TypeLiteral(Type type) {
-    this.type = canoncalize(checkNotNull(type, "type"));
+    this.type = canonicalize(checkNotNull(type, "type"));
     this.rawType = (Class<? super T>) MoreTypes.getRawType(this.type);
     this.hashCode = this.type.hashCode();
   }

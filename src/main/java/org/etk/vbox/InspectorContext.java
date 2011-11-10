@@ -42,11 +42,11 @@ class InspectorContext {
     this.module = module;
   }
   
-  public ModulerServiceImpl getApplicationImpl() {
+  public ModulerServiceImpl getModuleServiceImpl() {
     return module;
   }
   
-  public ModulerService getApplication() {
+  public ModulerService getModuleService() {
     return module;
   }
   
