@@ -45,14 +45,16 @@ public enum MyScope {
     @Override
     <T> InternalInspector<? extends T> scopeFactory(Class<T> type,
                                                   String name,
-                                                  InternalInspector<? extends T> factory) {
+                                                  final InternalInspector<? extends T> factory) {
       return new InternalInspector<T>() {
         T instance;
 
         @Override
         public T create(InspectorContext context) {
-          
-          return null;
+          if (instance == null) {
+            instance = factory.create(context);
+          }
+          return instance;
         }
 
       };
