@@ -129,7 +129,7 @@ public final class ModuleAssembler {
   }
   
   public <T> ModuleAssembler factory(MyKey<T> key, InternalInspector<? extends T> factory, MyScope scope) {
-    final InternalInspector<? extends T> scopedFactory = scope.scopeFactory(key.getType(), key.getName(), factory);
+    final InternalInspector<? extends T> scopedFactory = scope.scopeFactory(key.getRawType(), key.getName(), factory);
     factories.put(key, scopedFactory);
     if (scope == MyScope.SINGLETON) {
       //

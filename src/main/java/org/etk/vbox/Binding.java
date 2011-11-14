@@ -17,13 +17,11 @@
 package org.etk.vbox;
 
 /**
- * A custom factory. Creates objects which will be injected.
- *
+ * Created by The eXo Platform SAS
+ * Author : thanh_vucong
+ *          thanhvucong.78@gmail.com
+ * Nov 12, 2011  
  */
-public interface Factory<T> {
+public class Binding<T> {
 
-  /**
-   * Creates an object to be injected.
-   */
-  T create(Context context) throws Exception;
 }

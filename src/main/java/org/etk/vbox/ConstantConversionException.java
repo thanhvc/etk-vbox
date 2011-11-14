@@ -37,10 +37,10 @@ public class ConstantConversionException extends DependencyException {
   }
   
   private static String createMessage(String value, MyKey<?> key, Member member, String reason) {
-    return member == null ? "Error converting '" + value + "' to " + key.getType().getSimpleName()
+    return member == null ? "Error converting '" + value + "' to " + key.getRawType().getSimpleName()
                              + " while getting dependency named '" + key.getName() + "'. Reason: "
                              + reason
-                         : "Error converting '" + value + "' to " + key.getType().getSimpleName()
+                         : "Error converting '" + value + "' to " + key.getRawType().getSimpleName()
                              + " while injecting " + member.getName() + " with dependency named '"
                              + key.getName() + "' in " + member.getDeclaringClass().getSimpleName()
                              + ". Reason: " + reason;

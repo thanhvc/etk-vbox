@@ -47,7 +47,7 @@ public class ExternalContext<T> implements Context {
   }
 
   public Class<T> getType() {
-    return key.getType();
+    return key.getRawType();
   }
 
   public MyScope.Strategy getScopeStrategy() {

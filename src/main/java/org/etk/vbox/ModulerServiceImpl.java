@@ -112,8 +112,8 @@ public final class ModulerServiceImpl implements ModulerService {
                            injectors,
                            new InjectorFactory<Method>() {
       
-          public Injector create(ModulerServiceImpl application, Method method, String name) throws MissingDependencyException {
-            return new MethodInjector(application, method, name);
+          public Injector create(ModulerServiceImpl moduler, Method method, String name) throws MissingDependencyException {
+            return new MethodInjector(moduler, method, name);
           }
         });
   }
@@ -133,7 +133,7 @@ public final class ModulerServiceImpl implements ModulerService {
   
   
   interface InjectorFactory<M extends Member & AnnotatedElement> {
-    Injector create(ModulerServiceImpl application, M member, String name) throws MissingDependencyException;
+    Injector create(ModulerServiceImpl moduler, M member, String name) throws MissingDependencyException;
   }
   
   void addInjectorsForFields(Field[] fields, boolean statics, List<Injector> injectors) {
@@ -415,7 +415,7 @@ public final class ModulerServiceImpl implements ModulerService {
     final FastMethod fastMethod;
     final ParameterInjector<?>[] parameterInjectors;
 
-    public MethodInjector(ModulerServiceImpl module, Method method, String name) throws MissingDependencyException {
+    public MethodInjector(ModulerServiceImpl moduler, Method method, String name) throws MissingDependencyException {
       this.fastMethod = FastClass.create(method.getDeclaringClass()).getMethod(method);
       method.setAccessible(true);
 
@@ -423,7 +423,7 @@ public final class ModulerServiceImpl implements ModulerService {
       if (parameterTypes.length == 0) {
         throw new DependencyException(method + " has no parameters to inject.");
       }
-      parameterInjectors = module.getParametersInjectors(method, method.getParameterAnnotations(), parameterTypes, name);
+      parameterInjectors = moduler.getParametersInjectors(method, method.getParameterAnnotations(), parameterTypes, name);
     }
     
     /**
