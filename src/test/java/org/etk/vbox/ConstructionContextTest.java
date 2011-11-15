@@ -131,6 +131,52 @@ public class ConstructionContextTest extends TestCase {
 
   }
   
+  public void testGetParameterizeWithArray() throws Throwable {
+    // Create the proxy class
+    ClassContext<B> context = ClassUtils.getProxy(B.class);
+    // inject the implementation to specified proxy.
+    ClassUtils.getInstance(context, BImpl.class, new ConstructionContextTest());
+
+    Method[] methods = context.unWrap().getDeclaredMethods();
+
+    for (Method method : methods) {
+      Class<?>[] parameterTypes = method.getParameterTypes();
+      Type[] types = method.getGenericParameterTypes();
+      Constructor<?> parameterConstructor = null;
+      Object[] parameters = new Object[parameterTypes.length];
+
+      // processing the parameter type for method.
+      for (int i = 0; i < parameterTypes.length; i++) {
+        // constructor initialize primitive
+        if (parameterTypes[i].isPrimitive()) {
+          //
+          parameterConstructor = getCompatibleConstructor(parameterTypes[i], parameterTypes);
+        } if (parameterTypes[i].isArray()) {
+          Class<?> type = parameterTypes[i].getComponentType();
+          System.out.println(type.toString());
+        } else {
+          //
+          parameterConstructor = parameterTypes[i].getDeclaredConstructor(new Class[] {});
+        }
+
+        if (types[i].equals(java.lang.Integer.TYPE)) {
+          parameters[i] = new Integer(5);
+        } else if (types[i].equals(java.lang.Boolean.TYPE)) {
+          parameters[i] = Boolean.TRUE;
+        } else {
+          parameters[i] = parameterConstructor.newInstance(new Object[] {});
+          parameters[i] = "testGetParameterize " + i;
+        }
+      }
+
+      //
+      MethodContext methodContext = new MethodContext(context, method) {};
+      //
+      methodContext.invoke(parameters);
+    }
+
+  }
+  
   public void testGetParameterizeWithPrimitive() throws Throwable {
     
     // Create the proxy class
@@ -284,6 +330,23 @@ public class ConstructionContextTest extends TestCase {
       }
     }
   }
+  
+  interface B {
+    void showArray(String[] messages);
+  }
+  
+  class BImpl implements B {
+    public BImpl() {
+    }
+   
+    @Override
+    public void showArray(String[] messages) {
+      for (String message : messages) {
+        System.out.println("\nThe message: " + message);
+      }
+
+    }
+  }
  
   interface A {
     void printMysefl(String myMessage);
@@ -291,6 +354,7 @@ public class ConstructionContextTest extends TestCase {
     void printMysefl();
     void printNumber(int myNumber);
     void printMysefl(String myMessage1, String myMessage2);
+    void showArray(String[] messages);
   }
   
   class AImpl implements A {
@@ -317,6 +381,15 @@ public class ConstructionContextTest extends TestCase {
     public void printMysefl() {
       System.out.println("\nThis is ConstructionContextTest.A class ");
     }
+    @Override
+    public void showArray(String[] messages) {
+      for(String message: messages) {
+        System.out.println("\nThe message: " + message);
+      }
+      
+    }
+    
+    
   }
   
   

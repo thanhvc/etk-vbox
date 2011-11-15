@@ -24,17 +24,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
-import static org.etk.vbox.MyKey.DEFAULT_NAME;
 import org.aopalliance.intercept.MethodInterceptor;
-import org.etk.vbox.ModuleAssembler;
-import org.etk.vbox.InspectorContext;
-import org.etk.vbox.InternalInspector;
-import org.etk.vbox.ModulerService;
-import org.etk.vbox.ModulerServiceImpl;
-import org.etk.vbox.MyKey;
-import org.etk.vbox.MyScope;
-import org.etk.vbox.MyScoped;
 import org.etk.vbox.intercept.ProxyFactoryBuilder;
 import org.etk.vbox.matcher.Matcher;
 
@@ -61,11 +53,11 @@ import org.etk.vbox.matcher.Matcher;
 public final class ModuleAssembler {
 
   final Map<MyKey<?>, InternalInspector<?>> factories = new HashMap<MyKey<?>, InternalInspector<?>>();
-  
+  //Keeps the key for MyListenerInjector
   final Map<MyListenerKey<?>, List<MyKey<?>>> listenerKeyMap = new HashMap<MyListenerKey<?>, List<MyKey<?>>>();
-  
   final List<InternalInspector<?>> singletonFactories = new ArrayList<InternalInspector<?>>();
   final List<Class<?>> staticInjections = new ArrayList<Class<?>>();
+  
   boolean created;
   final ProxyFactoryBuilder proxyFactoryBuilder;
   
@@ -135,11 +127,15 @@ public final class ModuleAssembler {
   public <T> ModuleAssembler factory(MyKey<T> key, InternalInspector<? extends T> factory, MyScope scope) {
     final InternalInspector<? extends T> scopedFactory = scope.scopeFactory(key.getRawType(), key.getName(), factory);
     
-    MyListenerKey<T> listenerKey = key.getListenerKey();
+    MyListenerKey<?> listenerKey = key.getListenerKey();
+    List<MyKey<?>> keys = null;
     if (listenerKeyMap.containsKey(listenerKey)) {
-      List<My>
+      keys = listenerKeyMap.get(listenerKey);
+      keys.add(key);
     } else {
-      
+      keys = new ArrayList<MyKey<?>>();
+      keys.add(key);
+      listenerKeyMap.put(listenerKey, keys);
     }
     factories.put(key, scopedFactory);
     if (scope == MyScope.SINGLETON) {
@@ -171,13 +167,13 @@ public final class ModuleAssembler {
   public ModulerService create(boolean loadSingletons) {
     ensureNotCreated();
     created = true;
-    final ModulerServiceImpl application = new ModulerServiceImpl(new HashMap<MyKey<?>, InternalInspector<?>>(factories),
+
+    final ModulerServiceImpl service = new ModulerServiceImpl(new HashMap<MyKey<?>, InternalInspector<?>>(factories),
                                                                   new HashMap<MyListenerKey<?>, List<MyKey<?>>>(listenerKeyMap));
-    
     if (loadSingletons) {
       
       //Create ContextCallable
-      application.callInContext(new ModulerServiceImpl.ContextualCallable<Void>() {
+      service.callInContext(new ModulerServiceImpl.ContextualCallable<Void>() {
         public Void call(InspectorContext context) {
           for (InternalInspector<?> factory : singletonFactories) {
             //create Constructor base on context
@@ -187,8 +183,8 @@ public final class ModuleAssembler {
         }
       });
     }
-    application.injectStatics(staticInjections);
-    return application;
+    service.injectStatics(staticInjections);
+    return service;
   }
   
   /**
@@ -218,52 +214,7 @@ public final class ModuleAssembler {
     
     return this;
   }
-  
-  
-  /**
-   * Convenience method &nbsp;Equivalent to {@code alias(type, ModuleService.DEFAULT_NAME, type)}
-   * @param <T>
-   * @param type
-   * @param alias
-   * @return
-   */
-  public <T> ModuleAssembler alias(Class<T> type, String alias) {
-    return alias(type, MyKey.DEFAULT_NAME);
-  }
-  
-  /**
-   * Maps an existing {@link InternalInspector} to new name.
-   * @param <T>
-   * @param type of dependency
-   * @param name of dependency
-   * @param alias of to the dependency.
-   * @return this assembler
-   */
-  public <T> ModuleAssembler alias(Class<T> type, String name, String alias) {
-    return alias(MyKey.newInstance(type, name), MyKey.newInstance(type, alias));
-  }
-  
-  /**
-   * Maps an existing dependency. All methods in this class ultimately funnel through here.
-   * @param <T>
-   * @param key
-   * @param aliasKey
-   * @return
-   */
-  private <T> ModuleAssembler alias(final MyKey<T> key, final MyKey<T> aliasKey) {
-    ensureNotCreated();
-    checkKey(aliasKey);
-    
-    final InternalInspector<? extends T> scopedInspector = (InternalInspector<? extends T>) factories.get(key);
-    if (scopedInspector == null) {
-      throw new DependencyException("Dependency mapping for " + key + "doesn't exists.");
-    }
-    
-    factories.put(aliasKey, scopedInspector);
-    return this;
-    
-  }
-  
+ 
   /**
    * Applies the given method interceptor to the methods matched by the class
    * and method matchers.

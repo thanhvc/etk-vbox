@@ -27,7 +27,7 @@ import org.etk.vbox.MyInject;
  *          thanhvc@exoplatform.com
  * Oct 15, 2011  
  */
-public class AssemberTest extends TestCase {
+public class AssemblerTest extends TestCase {
 
   public void testInjector() throws Exception {
     ModulerService application = createApplication();

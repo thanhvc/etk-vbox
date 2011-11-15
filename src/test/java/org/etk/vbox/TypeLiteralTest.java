@@ -35,5 +35,11 @@ public class TypeLiteralTest extends TestCase {
     TypeLiteral<List<String>> b = new TypeLiteral<List<String>>(Types.listOf(String.class));
     assertEquals(a, b);
   }
+  
+  public void testWithParameterizedTypeArray() {
+    TypeLiteral<String[]> a = new TypeLiteral<String[]>();
+    assertEquals(String.class, a.getType());
+    
+  }
 
 }
