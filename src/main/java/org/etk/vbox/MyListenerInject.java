@@ -16,32 +16,26 @@
  */
 package org.etk.vbox;
 
-import static java.lang.annotation.ElementType.CONSTRUCTOR;
-import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.etk.vbox.MyKey.DEFAULT_NAME;
 
+import static org.etk.vbox.MyListenerKey.DEFAULT_METHOD_NAME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
-import org.etk.vbox.ModulerService;
-
 
 /**
  * <p>Annotates members and parameters which should have their value[s]
  * injected.
  *
  */
-@Target({METHOD, CONSTRUCTOR, FIELD, PARAMETER})
+@Target({METHOD})
 @Retention(RUNTIME)
-public @interface MyInject {
+public @interface MyListenerInject {
 
   /**
-   * Dependency name. Defaults to {@link ModulerService#DEFAULT_NAME}.
+   * Dependency name. Defaults to {@link MyListenerKey#DEFAULT_METHOD_NAME}.
    */
-  String value() default DEFAULT_NAME;
+  String value() default DEFAULT_METHOD_NAME;
 
   /**
    * Whether or not injection is required. Applicable only to methods and

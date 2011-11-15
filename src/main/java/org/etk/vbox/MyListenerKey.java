@@ -21,42 +21,24 @@ import static org.etk.vbox.internal.utils.Objects.nonNull;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-import org.etk.vbox.MyKey;
-
 /**
- * Dependency mapping key. Uniquely identified by the required type and name.
- *
+ * Created by The eXo Platform SAS
+ * Author : thanh_vucong
+ *          thanhvucong.78@gmail.com
+ * Nov 14, 2011  
  */
-public abstract class MyKey<T> {
+public class MyListenerKey<T> {
 
   /**
    * Default binding name.
    */
-  public static final String DEFAULT_NAME = "default";
+  public static final String DEFAULT_METHOD_NAME = "default-method";
   
   final Class<T> rawType;
   final String typeString;
   final Type type;
-  
-  final String name;
 
-  protected MyKey() {
-    this(DEFAULT_NAME);
-  }
-  
-  /**
-   * Constructs a new key. Derives the type from this class's type parameter.
-   * Requires client to create an empty anonymous class.
-   *  
-   * <p>Example usage for a binding of type {@code Foo} named "bar":
-   * {@code new Key<Foo>("bar") {}}.
-   * 
-   *  <p>The curly braces in the example serve to create an empty anonymous
-   *  class.
-   * @param name
-   */
-  protected MyKey(String name) {
-    this.name = nonNull(name, "name");
+  protected MyListenerKey() {
     Type superClass = getClass().getGenericSuperclass();
     
     if (superClass instanceof Class) {
@@ -66,16 +48,12 @@ public abstract class MyKey<T> {
     this.type = ((ParameterizedType) superClass).getActualTypeArguments()[0];
     this.rawType = getRawType(type);
     this.typeString = toString(type);
-    
   }
   
-    
-  private MyKey(Type type, String name) {
-    this.name = nonNull(name, "name");
+  private MyListenerKey(Type type) {
     this.type = nonNull(type, "type");
     this.rawType = getRawType(type);
     this.typeString = toString(type);
-
   }
   
   /**
@@ -122,20 +100,12 @@ public abstract class MyKey<T> {
     return type;
   }
 
-  public String getName() {
-    return name;
-  }
-
   public int hashCode() {
     return typeString.hashCode();
   }
   
-  public MyKey<?> rawKey() {
-    return MyKey.newInstance(rawType, name);
-  }
-  
-  public MyListenerKey<T> getListenerKey() {
-    return MyListenerKey.newInstance(this.rawType);
+  public MyListenerKey<?> rawKey() {
+    return MyListenerKey.newInstance(rawType);
   }
 
   /**
@@ -149,43 +119,28 @@ public abstract class MyKey<T> {
     if (o == this) {
       return true;
     }
-    if (!(o instanceof MyKey)) {
+    if (!(o instanceof MyListenerKey)) {
       return false;
     }
-    MyKey other = (MyKey) o;
-    return name.equals(other.name) && typeString.equals(other.typeString);
+    MyListenerKey other = (MyListenerKey) o;
+    return typeString.equals(other.typeString);
   }
 
   public String toString() {
-    return "MyKey[type=" + typeString + ", name='" + name + "']";
+    return "MyListenerKey[type=" + typeString + "']";
   }
 
   /**
    * Constructs a key from a raw type.
    */
-  public static <T> MyKey<T> newInstance(Class<T> type) {
-    return new MyKey<T>(type, DEFAULT_NAME) {};
+  public static <T> MyListenerKey<T> newInstance(Class<T> type) {
+    return new MyListenerKey<T>(type) {};
   }
 
-  /**
-   * Constructs a key from a raw type and a name.
-   */
-  public static <T> MyKey<T> newInstance(Class<T> type, String name) {
-    return new MyKey<T>(type, name) {};
-  }
-
-  /**
+   /**
    * Constructs a key from a type.
    */
-  public static MyKey<?> newInstance(Type type) {
-    return new MyKey<Object>(type, DEFAULT_NAME) {};
+  public static MyListenerKey<?> newInstance(Type type) {
+    return new MyListenerKey<Object>(type) {};
   }
-
-  /**
-   * Constructs a key from a type and a name.
-   */
-  public static MyKey<?> newInstance(Type type, String name) {
-    return new MyKey<Object>(type, name) {};
-  }
-
 }

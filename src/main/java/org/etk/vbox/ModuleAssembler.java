@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.etk.vbox.MyKey.DEFAULT_NAME;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.etk.vbox.ModuleAssembler;
 import org.etk.vbox.InspectorContext;
@@ -60,6 +61,9 @@ import org.etk.vbox.matcher.Matcher;
 public final class ModuleAssembler {
 
   final Map<MyKey<?>, InternalInspector<?>> factories = new HashMap<MyKey<?>, InternalInspector<?>>();
+  
+  final Map<MyListenerKey<?>, List<MyKey<?>>> listenerKeyMap = new HashMap<MyListenerKey<?>, List<MyKey<?>>>();
+  
   final List<InternalInspector<?>> singletonFactories = new ArrayList<InternalInspector<?>>();
   final List<Class<?>> staticInjections = new ArrayList<Class<?>>();
   boolean created;
@@ -75,7 +79,7 @@ public final class ModuleAssembler {
    * @see #factory(Class, String, Class)
    */
   public <T> ModuleAssembler factory(Class<T> type, Class<? extends T> implementation) {
-    return factory(type, ModulerService.DEFAULT_NAME, implementation);
+    return factory(type, MyKey.DEFAULT_NAME, implementation);
   }
   
   /**
@@ -130,6 +134,13 @@ public final class ModuleAssembler {
   
   public <T> ModuleAssembler factory(MyKey<T> key, InternalInspector<? extends T> factory, MyScope scope) {
     final InternalInspector<? extends T> scopedFactory = scope.scopeFactory(key.getRawType(), key.getName(), factory);
+    
+    MyListenerKey<T> listenerKey = key.getListenerKey();
+    if (listenerKeyMap.containsKey(listenerKey)) {
+      List<My>
+    } else {
+      
+    }
     factories.put(key, scopedFactory);
     if (scope == MyScope.SINGLETON) {
       //
@@ -160,7 +171,8 @@ public final class ModuleAssembler {
   public ModulerService create(boolean loadSingletons) {
     ensureNotCreated();
     created = true;
-    final ModulerServiceImpl application = new ModulerServiceImpl(new HashMap<MyKey<?>, InternalInspector<?>>(factories));
+    final ModulerServiceImpl application = new ModulerServiceImpl(new HashMap<MyKey<?>, InternalInspector<?>>(factories),
+                                                                  new HashMap<MyListenerKey<?>, List<MyKey<?>>>(listenerKeyMap));
     
     if (loadSingletons) {
       
@@ -216,7 +228,7 @@ public final class ModuleAssembler {
    * @return
    */
   public <T> ModuleAssembler alias(Class<T> type, String alias) {
-    return alias(type, ModulerService.DEFAULT_NAME);
+    return alias(type, MyKey.DEFAULT_NAME);
   }
   
   /**

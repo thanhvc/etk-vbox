@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.etk.vbox.utils.DataCache;
+import static org.etk.vbox.MyKey.DEFAULT_NAME;
 
 /**
  * Created by The eXo Platform SAS
@@ -47,14 +48,25 @@ import org.etk.vbox.utils.DataCache;
 public final class ModulerServiceImpl implements ModulerService {
 
   final Map<MyKey<?>, InternalInspector<?>> inspectors;
+  final Map<MyListenerKey<?>, List<MyKey<?>>> listenerKeyMap;
   
-  ModulerServiceImpl(Map<MyKey<?>, InternalInspector<?>> factories) {
+  ModulerServiceImpl(Map<MyKey<?>, InternalInspector<?>> factories, Map<MyListenerKey<?>, List<MyKey<?>>> listenerKeyMap) {
     this.inspectors = factories;
+    this.listenerKeyMap = listenerKeyMap;
   }
   
   @SuppressWarnings("unchecked")
   <T> InternalInspector<? extends T> getFactory(MyKey<T> key) {
     return (InternalInspector<T>) inspectors.get(key);
+  }
+  
+  /**
+   * Mapping between MyListenerKey to List of MyKeys
+   * @param listenerKey
+   * @return
+   */
+  List<MyKey<?>> getKeys(MyListenerKey<?> listenerKey) {
+    return listenerKeyMap.get(listenerKey);
   }
   
   /**
@@ -86,6 +98,8 @@ public final class ModulerServiceImpl implements ModulerService {
     
     addInjectorsForFields(clazz.getDeclaredFields(), false, injectors);
     addInjectorsForMethods(clazz.getDeclaredMethods(), false, injectors);
+    
+    //addInjectorsForListenerMethods(clazz.getDeclaredMethods(), false, injectors);
   }
   
   void injectStatics(List<Class<?>> staticInjections) {
@@ -118,6 +132,7 @@ public final class ModulerServiceImpl implements ModulerService {
         });
   }
   
+    
   
   private static Object[] getParameters(InspectorContext context, ParameterInjector[] parameterInjectors) {
     if (parameterInjectors == null) {
@@ -308,6 +323,20 @@ public final class ModulerServiceImpl implements ModulerService {
     return toArray(parameterInjectors);
   }
   
+  <M extends AccessibleObject & Member> ParameterInjector<?>[] getParametersInjectorsForListerner(M member,
+                                                                                      Annotation[][] annotations,
+                                                                                      Class[] parameterTypes,
+                                                                                      String defaultName) throws MissingDependencyException {
+    List<ParameterInjector<?>> parameterInjectors = new ArrayList<ParameterInjector<?>>();
+   
+    for(Class<?> parameterType : parameterTypes) {
+      MyListenerKey<?> listenerKey = MyListenerKey.newInstance(parameterType);
+      parameterInjectors.addAll(createParameterInjectorForListener(listenerKey, member));
+    }
+    
+    return toArray(parameterInjectors);
+  }
+  
   @SuppressWarnings("unchecked")
   private ParameterInjector<?>[] toArray(List<ParameterInjector<?>> parameterInjections) {
 
@@ -316,14 +345,6 @@ public final class ModulerServiceImpl implements ModulerService {
   }
   
   <T> ParameterInjector<T> createParameterInjector(MyKey<T> key, Member member) throws MissingDependencyException {
-    //TODO This point is very important because it get the factory of parameter injector
-    //example
-    // class AImpl {
-    //   B b;
-    //   Aimpl(@injector B b) {
-    // }
-    // }
-    // class B {}
     InternalInspector<? extends T> factory = getFactory(key);
     if (factory == null) {
       throw new MissingDependencyException("No mapping found for dependency " + key + " in " + member + ".");
@@ -331,6 +352,19 @@ public final class ModulerServiceImpl implements ModulerService {
     
     ExternalContext<T> externalContext = ExternalContext.newInstance(member, key, this);
     return new ParameterInjector<T>(externalContext, factory);
+  }
+  
+  <T> List<ParameterInjector<?>> createParameterInjectorForListener(MyListenerKey<T> listenerKey, Member member) throws MissingDependencyException {
+    List<MyKey<?>> myKeys = getKeys(listenerKey);
+    if (myKeys == null) {
+      throw new MissingDependencyException("No mapping found for dependency with listenerKey in " + member + ".");
+    }
+    
+    List<ParameterInjector<?>> paramInjectors = new ArrayList<ModulerServiceImpl.ParameterInjector<?>>();
+    for(MyKey<?> key : myKeys) {
+      paramInjectors.add(createParameterInjector(key, member));
+    }
+    return paramInjectors;
   }
   
   /**
@@ -416,6 +450,34 @@ public final class ModulerServiceImpl implements ModulerService {
     final ParameterInjector<?>[] parameterInjectors;
 
     public MethodInjector(ModulerServiceImpl moduler, Method method, String name) throws MissingDependencyException {
+      this.fastMethod = FastClass.create(method.getDeclaringClass()).getMethod(method);
+      method.setAccessible(true);
+
+      Class<?>[] parameterTypes = method.getParameterTypes();
+      if (parameterTypes.length == 0) {
+        throw new DependencyException(method + " has no parameters to inject.");
+      }
+      parameterInjectors = moduler.getParametersInjectors(method, method.getParameterAnnotations(), parameterTypes, name);
+    }
+    
+    /**
+     * Executes the injector the Objects[] to the specified method.
+     */
+    public void inject(InspectorContext context, Object o) {
+      try {
+        fastMethod.invoke(o, getParameters(context, parameterInjectors));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  
+  static class MethodListenerInjector implements Injector {
+
+    final FastMethod fastMethod;
+    final ParameterInjector<?>[] parameterInjectors;
+
+    public MethodListenerInjector(ModulerServiceImpl moduler, Method method, String name) throws MissingDependencyException {
       this.fastMethod = FastClass.create(method.getDeclaringClass()).getMethod(method);
       method.setAccessible(true);
 

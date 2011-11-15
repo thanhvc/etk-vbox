@@ -65,11 +65,6 @@ import org.etk.vbox.MyScope;
 public interface ModulerService {
 
   /**
-   * Default dependency name.
-   */
-  String DEFAULT_NAME = "default";
-
-  /**
    * Injects dependencies into the fields and methods of an existing object.
    */
   void inject(Object o);
